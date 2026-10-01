@@ -1,0 +1,18 @@
+# Saida real do validador
+
+Gerado por `python tools/gerar_exemplos.py`. Os tres blocos abaixo sao
+a saida da CLI sobre os dois arquivos que acompanham o repositorio.
+Nada foi escrito a mao.
+
+## Projeto valido
+
+```
+PS> python -m netlab validar dados/projeto-predio.yaml
+Projeto: projeto-predio - Edificio Predial Norte - 3 andares
+5 VLANs | 9 switches | 13 portas | 2 APs | 12 regras aplicadas
+
+0 erros em 9 dispositivos, 5 VLANs
+```
+
+Codigo de saida: 0. As 12 regras
+do catalogo estao listadas com `python -m netlab regras`.

@@ -1,0 +1,189 @@
+# Mesmo projeto do predio, com um caso de cada regra plantado.
+#
+# Este arquivo existe para provar que o validador DETECTA erro, e nao apenas
+# aprova. Cada bloco abaixo carrega o comentario do codigo que ele dispara.
+# Se uma regra parar de funcionar, um teste quebra: este arquivo tem de
+# produzir no minimo os 12 codigos.
+
+nome: projeto-predio-com-erros
+predio: "Edificio Predial Norte - 3 andares (com erros plantados)"
+
+vlans:
+  # E001 - sobreposicao de sub-rede. 40-GUEST esta dentro do
+  # mesmo espaco de 20-VOIP, so que com mascara /25. As duas notacoes sao
+  # DIFERENTES (192.168.20.0/24 e 192.168.20.0/25), entao comparar texto
+  # nao acha a sobreposicao. So aritmetica de sub-rede acha.
+  - id: 10
+    nome: 10-CORPORATIVO
+    faixa: 192.168.10.0/24
+    descricao: "Estacoes de trabalho e gerenciamento"
+  - id: 20
+    nome: 20-VOIP
+    faixa: 192.168.20.0/24
+    descricao: "Telefones IP"
+  - id: 30
+    nome: 30-CFTV
+    faixa: 192.168.30.0/24
+    descricao: "Cameras e NVR"
+  # E012 - mascara divergente do plano. As demais sao /24; esta e /25.
+  - id: 40
+    nome: 40-GUEST
+    faixa: 192.168.20.0/25
+    descricao: "Visitantes: mascara /25 dentro da faixa do VOIP, e sobreposta"
+  # E007 - ENERGIA-IP precisa existir para a regra ter contra o que olhar.
+  - id: 50
+    nome: 50-ENERGIA-IP
+    faixa: 192.168.50.0/24
+    descricao: "Medidores e BMS"
+
+switches:
+  - nome: core-1
+    modelo: "Cisco Catalyst C9300-48P"
+    camada: core
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.2
+    snmp_community: netlab-ro
+    snmp_modo: read
+  # E009 - mesmo endereco que acc-2b. Dois equipamentos na mesma rede com o
+  # mesmo IP geram ARP duplicado e falha intermitente em campo.
+  - nome: dist-1a
+    modelo: "Cisco Catalyst C9300-24T"
+    camada: distribuicao
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.3
+    snmp_community: netlab-ro
+    snmp_modo: read
+  # E002 - endereco de gerenciamento fora da faixa da VLAN 10.
+  - nome: dist-1b
+    modelo: "Cisco Catalyst C9300-24T"
+    camada: distribuicao
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.99.4
+    snmp_community: netlab-ro
+    snmp_modo: read
+  # E010 - community SNMP em modo escrita.
+  - nome: acc-1a
+    modelo: "Cisco Catalyst C1200-24T"
+    camada: acesso
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.11
+    snmp_community: netlab-rw
+    snmp_modo: read-write
+  # E009 - endereco repetido com dist-1a.
+  - nome: acc-1b
+    modelo: "Cisco Catalyst C1200-24T"
+    camada: acesso
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.3
+    snmp_community: netlab-ro
+    snmp_modo: read
+  - nome: acc-2a
+    modelo: "Cisco Catalyst C1200-24T"
+    camada: acesso
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.21
+    snmp_community: netlab-ro
+    snmp_modo: read
+  - nome: acc-2b
+    modelo: "Cisco Catalyst C1200-24T"
+    camada: acesso
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.22
+    snmp_community: netlab-ro
+    snmp_modo: read
+  - nome: acc-3a
+    modelo: "Cisco Catalyst C1200-24T"
+    camada: acesso
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.31
+    snmp_community: netlab-ro
+    snmp_modo: read
+  - nome: acc-cftv
+    modelo: "Cisco Catalyst C1000-8T"
+    camada: acesso
+    vlan_gerencia: 30
+    ip_gerencia: 192.168.30.2
+    snmp_community: netlab-ro
+    snmp_modo: read
+
+interfaces:
+  - { switch: acc-1a, porta: Gi0/1, tipo: access, vlan: 10 }
+  - { switch: acc-1a, porta: Gi0/3, tipo: access, vlan: 20 }
+  # E004 - porta access apontando para VLAN que nao existe.
+  - { switch: acc-1b, porta: Gi0/1, tipo: access, vlan: 99 }
+  - { switch: acc-2a, porta: Gi0/1, tipo: access, vlan: 10 }
+  - { switch: acc-2a, porta: Gi0/2, tipo: access, vlan: 20 }
+  - { switch: acc-3a, porta: Gi0/1, tipo: access, vlan: 10 }
+  - { switch: acc-cftv, porta: Gi0/1, tipo: access, vlan: 30 }
+  - { switch: acc-cftv, porta: Gi0/2, tipo: access, vlan: 30 }
+
+trunks:
+  - { switch: core-1, porta: Te1/0/1, vlan: 10, nativo: true }
+  - { switch: core-1, porta: Te1/0/1, vlan: 20 }
+  # E005 - trunk permitindo VLAN que o projeto nao declara.
+  - { switch: core-1, porta: Te1/0/1, vlan: 77 }
+  - { switch: core-1, porta: Te1/0/2, vlan: 10, nativo: true }
+  # E006 - CFTV com rota default para a internet.
+  - { switch: core-1, porta: Te1/0/2, vlan: 30 }
+  # E008 - trunk sem a VLAN 10 de gerenciamento. Os equipamentos atras deste
+  # enlace ficam sem como ser alcancaveis.
+  - { switch: dist-1a, porta: Te1/0/1, vlan: 20 }
+  - { switch: dist-1b, porta: Te1/0/1, vlan: 10, nativo: true }
+
+dhcp:
+  - { vlan: 10, inicio: 192.168.10.100, fim: 192.168.10.199, gateway: 192.168.10.1 }
+  # E003 - pool da VLAN 20 entregando endereco da VLAN 10.
+  - { vlan: 20, inicio: 192.168.10.200, fim: 192.168.10.229, gateway: 192.168.20.1 }
+  - { vlan: 30, inicio: 192.168.30.50, fim: 192.168.30.59, gateway: 192.168.30.1 }
+  - { vlan: 40, inicio: 192.168.20.10, fim: 192.168.20.120, gateway: 192.168.20.1 }
+  - { vlan: 50, inicio: 192.168.50.50, fim: 192.168.50.59, gateway: 192.168.50.1 }
+
+rotas:
+  - { vlan: 10, destino: "0.0.0.0/0", proximo_salto: "firewall-1", padrao_para_internet: true }
+  - { vlan: 20, destino: "0.0.0.0/0", proximo_salto: "firewall-1", padrao_para_internet: true }
+  - { vlan: 40, destino: "0.0.0.0/0", proximo_salto: "firewall-1", padrao_para_internet: true }
+  # E006 - CFTV alcancavel da internet.
+  - { vlan: 30, destino: "0.0.0.0/0", proximo_salto: "firewall-1", padrao_para_internet: true }
+  # E007 - ENERGIA-IP alcancavel da internet.
+  - { vlan: 50, destino: "0.0.0.0/0", proximo_salto: "firewall-1", padrao_para_internet: true }
+
+aps:
+  - nome: ap-visitantes-1a
+    switch: acc-1a
+    porta: Gi0/20
+    ssids:
+      Rede-predio: 10
+      Visitantes: 40
+  # E011 - SSID sem VLAN mapeada. Vai cair na rede de gerenciamento por padrao.
+  - nome: ap-visitantes-2a
+    switch: acc-2a
+    porta: Gi0/20
+    ssids:
+      Visitantes: 40
+      Free-WiFi-Publico: 0
+
+firewalls:
+  - nome: firewall-1
+    modelo: "pfSense +"
+    ip_gerencia: 192.168.10.1
+    vlan_gerencia: 10
+
+servidores:
+  - nome: srv-ad
+    ip: 192.168.10.11
+    papel: "Active Directory"
+
+nvrs:
+  - nome: nvr-1
+    ip: 192.168.30.10
+    cameras: 2
+
+sensores:
+  - nome: snmpd-1
+    ip: 192.168.10.50
+    papel: "coletor de SNMP"
+
+medidores:
+  - nome: medidor-1
+    ip: 192.168.50.10
+    protocolo: modbus-tcp

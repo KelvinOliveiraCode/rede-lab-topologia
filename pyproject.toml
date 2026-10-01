@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netlab"
+version = "1.0.0"
+description = "Validador de projeto de rede LAN a partir de arquivo declarativo, com 12 regras"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["rede", "lan", "vlan", "cidr", "segmentacao", "infraestrutura", "bms", "cftv"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: System :: Networking",
+]
+# A unica dependencia e PyYAML. O resto da arvore de sub-rede vem de
+# ipaddress, da biblioteca padrao, porque sobreposicao de CIDR e aritmetica de
+# rede e nao comparacao de texto: 192.168.20.0/24 e 192.168.20.0/25 sao
+# notacoes diferentes do mesmo problema.
+dependencies = ["PyYAML>=6.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "pytest-cov>=4.1"]
+
+[project.scripts]
+netlab = "netlab.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+
+[tool.coverage.run]
+branch = true
+source = ["netlab"]
+
+[tool.coverage.report]
+show_missing = true
+# O padrao do portfolio e 70%; o mesmo piso aqui, para que uma regressao de
+# cobertura derrube o build em vez de passar despercebida.
+fail_under = 70
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise SystemExit",
+    "if TYPE_CHECKING:",
+]

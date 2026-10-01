@@ -1,0 +1,207 @@
+# Projeto de rede do predio comercial - caso valido.
+#
+# Tres andares, cinco VLANs, nove switches, dois pontos de acesso, um firewall,
+# dois servidores, um NVR, um sensor SNMP e um medidor de energia IP.
+#
+# Este arquivo passa nas 12 regras. O gemelo `projeto-com-erros.yaml` tem o
+# mesmo desenho com um caso de cada regra plantado, e e o que prova que o
+# validador detecta erro em vez de apenas aprovar.
+
+nome: projeto-predio
+predio: "Edificio Predial Norte - 3 andares"
+
+# ---------------------------------------------------------------------------
+# VLANs RFC 1918, uma faixa /24 por segmento
+# ---------------------------------------------------------------------------
+vlans:
+  - id: 10
+    nome: 10-CORPORATIVO
+    faixa: 192.168.10.0/24
+    descricao: "Estacoes de trabalho, servidores e gerenciamento"
+  - id: 20
+    nome: 20-VOIP
+    faixa: 192.168.20.0/24
+    descricao: "Telefones IP e coleta de chamada"
+  - id: 30
+    nome: 30-CFTV
+    faixa: 192.168.30.0/24
+    descricao: "Cameras e NVR. Sem rota para a internet"
+  - id: 40
+    nome: 40-GUEST
+    faixa: 192.168.40.0/24
+    descricao: "Rede de visitantes, com portal cativo"
+  - id: 50
+    nome: 50-ENERGIA-IP
+    faixa: 192.168.50.0/24
+    descricao: "Medidores e BMS. Sem rota para a internet"
+
+# ---------------------------------------------------------------------------
+# Equipamentos: 1 core L3, 2 distribuicao, 6 acesso, 1 firewall
+# ---------------------------------------------------------------------------
+switches:
+  - nome: core-1
+    modelo: "Cisco Catalyst C9300-48P"
+    camada: core
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.2
+    snmp_community: netlab-ro
+    snmp_modo: read
+  - nome: dist-1a
+    modelo: "Cisco Catalyst C9300-24T"
+    camada: distribuicao
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.3
+    snmp_community: netlab-ro
+    snmp_modo: read
+  - nome: dist-1b
+    modelo: "Cisco Catalyst C9300-24T"
+    camada: distribuicao
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.4
+    snmp_community: netlab-ro
+    snmp_modo: read
+  - nome: acc-1a
+    modelo: "Cisco Catalyst C1200-24T"
+    camada: acesso
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.11
+    snmp_community: netlab-ro
+    snmp_modo: read
+  - nome: acc-1b
+    modelo: "Cisco Catalyst C1200-24T"
+    camada: acesso
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.12
+    snmp_community: netlab-ro
+    snmp_modo: read
+  - nome: acc-2a
+    modelo: "Cisco Catalyst C1200-24T"
+    camada: acesso
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.21
+    snmp_community: netlab-ro
+    snmp_modo: read
+  - nome: acc-2b
+    modelo: "Cisco Catalyst C1200-24T"
+    camada: acesso
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.22
+    snmp_community: netlab-ro
+    snmp_modo: read
+  - nome: acc-3a
+    modelo: "Cisco Catalyst C1200-24T"
+    camada: acesso
+    vlan_gerencia: 10
+    ip_gerencia: 192.168.10.31
+    snmp_community: netlab-ro
+    snmp_modo: read
+  - nome: acc-cftv
+    modelo: "Cisco Catalyst C1000-8T"
+    camada: acesso
+    vlan_gerencia: 30
+    ip_gerencia: 192.168.30.2
+    snmp_community: netlab-ro
+    snmp_modo: read
+
+# ---------------------------------------------------------------------------
+# Portas de acesso
+# ---------------------------------------------------------------------------
+interfaces:
+  - { switch: acc-1a, porta: Gi0/1, tipo: access, vlan: 10, descricao: "estacao 1" }
+  - { switch: acc-1a, porta: Gi0/2, tipo: access, vlan: 10, descricao: "estacao 2" }
+  - { switch: acc-1a, porta: Gi0/3, tipo: access, vlan: 20, descricao: "telefone" }
+  - { switch: acc-1b, porta: Gi0/1, tipo: access, vlan: 10, descricao: "estacao 3" }
+  - { switch: acc-1b, porta: Gi0/2, tipo: access, vlan: 20, descricao: "telefone" }
+  - { switch: acc-2a, porta: Gi0/1, tipo: access, vlan: 10, descricao: "estacao 4" }
+  - { switch: acc-2a, porta: Gi0/2, tipo: access, vlan: 20, descricao: "telefone" }
+  - { switch: acc-2b, porta: Gi0/1, tipo: access, vlan: 10, descricao: "estacao 5" }
+  - { switch: acc-3a, porta: Gi0/1, tipo: access, vlan: 10, descricao: "estacao 6" }
+  - { switch: acc-3a, porta: Gi0/2, tipo: access, vlan: 40, descricao: "portaPatch" }
+  - { switch: acc-cftv, porta: Gi0/1, tipo: access, vlan: 30, descricao: "camera entrada" }
+  - { switch: acc-cftv, porta: Gi0/2, tipo: access, vlan: 30, descricao: "camera patio" }
+  - { switch: acc-cftv, porta: Gi0/3, tipo: access, vlan: 30, descricao: "camera garagem" }
+
+# ---------------------------------------------------------------------------
+# Trunks. Todo trunk leva a VLAN 10 de gerenciamento, ou nenhuma regra
+# E008 dispara e nenhum equipamento atras do enlace fica acessivel.
+# ---------------------------------------------------------------------------
+trunks:
+  - { switch: core-1, porta: Te1/0/1, vlan: 10, nativo: true }
+  - { switch: core-1, porta: Te1/0/1, vlan: 20 }
+  - { switch: core-1, porta: Te1/0/1, vlan: 40 }
+  - { switch: core-1, porta: Te1/0/1, vlan: 50 }
+  - { switch: core-1, porta: Te1/0/2, vlan: 10, nativo: true }
+  - { switch: core-1, porta: Te1/0/2, vlan: 30 }
+  - { switch: dist-1a, porta: Te1/0/1, vlan: 10, nativo: true }
+  - { switch: dist-1b, porta: Te1/0/1, vlan: 10, nativo: true }
+  - { switch: acc-cftv, porta: Gi0/8, vlan: 10, nativo: true }
+  - { switch: acc-cftv, porta: Gi0/8, vlan: 30 }
+
+# ---------------------------------------------------------------------------
+# DHCP por VLAN. Todo pool dentro da faixa da sua VLAN.
+# ---------------------------------------------------------------------------
+dhcp:
+  - { vlan: 10, inicio: 192.168.10.100, fim: 192.168.10.199, gateway: 192.168.10.1 }
+  - { vlan: 20, inicio: 192.168.20.100, fim: 192.168.20.199, gateway: 192.168.20.1 }
+  - { vlan: 30, inicio: 192.168.30.50, fim: 192.168.30.59, gateway: 192.168.30.1 }
+  - { vlan: 40, inicio: 192.168.40.100, fim: 192.168.40.249, gateway: 192.168.40.1 }
+  - { vlan: 50, inicio: 192.168.50.50, fim: 192.168.50.59, gateway: 192.168.50.1 }
+
+# ---------------------------------------------------------------------------
+# Rotas. CFTV e ENERGIA-IP ficam sem rota default para a internet: e a
+# segmentacao que a E006 e a E007 exigem.
+# ---------------------------------------------------------------------------
+rotas:
+  - { vlan: 10, destino: "0.0.0.0/0", proximo_salto: "firewall-1", padrao_para_internet: true }
+  - { vlan: 20, destino: "0.0.0.0/0", proximo_salto: "firewall-1", padrao_para_internet: true }
+  - { vlan: 40, destino: "0.0.0.0/0", proximo_salto: "firewall-1", padrao_para_internet: true }
+  - { vlan: 30, destino: "192.168.0.0/16", proximo_salto: "core-1", descricao: "interna apenas" }
+  - { vlan: 50, destino: "192.168.0.0/16", proximo_salto: "core-1", descricao: "interna apenas" }
+
+# ---------------------------------------------------------------------------
+# Pontos de acesso. Todo SSID mapeado para uma VLAN.
+# ---------------------------------------------------------------------------
+aps:
+  - nome: ap-visitantes-1a
+    switch: acc-1a
+    porta: Gi0/20
+    ssids:
+      Rede-predio: 10
+      Visitantes: 40
+  - nome: ap-visitantes-2a
+    switch: acc-2a
+    porta: Gi0/20
+    ssids:
+      Visitantes: 40
+
+# ---------------------------------------------------------------------------
+# Demais equipamentos
+# ---------------------------------------------------------------------------
+firewalls:
+  - nome: firewall-1
+    modelo: "pfSense +"
+    ip_gerencia: 192.168.10.1
+    vlan_gerencia: 10
+
+servidores:
+  - nome: srv-ad
+    ip: 192.168.10.11
+    papel: "Active Directory"
+  - nome: srv-files
+    ip: 192.168.10.12
+    papel: "servidor de arquivos"
+
+nvrs:
+  - nome: nvr-1
+    ip: 192.168.30.10
+    cameras: 3
+
+sensores:
+  - nome: snmpd-1
+    ip: 192.168.10.50
+    papel: "coletor de SNMP"
+
+medidores:
+  - nome: medidor-1
+    ip: 192.168.50.10
+    protocolo: modbus-tcp

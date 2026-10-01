@@ -1,0 +1,90 @@
+# Saida real do validador com o projeto que tem erros
+
+Gerado por `python tools/gerar_exemplos.py`. O arquivo
+`dados/projeto-com-erros.yaml` tem um caso de cada regra plantado, e
+abaixo esta a saida da CLI sobre ele.
+
+```
+PS> python -m netlab validar dados/projeto-com-erros.yaml
+Projeto: projeto-predio-com-erros - Edificio Predial Norte - 3 andares (com erros plantados)
+5 VLANs | 9 switches | 8 portas | 2 APs | 12 regras aplicadas
+
+12 erro(s) encontrado(s): 9 alta, 3 media
+
+E001 - Sobreposicao de sub-rede entre VLANs
+  VLANs 20-VOIP (192.168.20.0/24) e 40-GUEST (192.168.20.0/25) tem sub-rede que se sobrepoem
+    onde: 20 e 40
+    sugestao: Dê faixas disjuntas as duas VLANs.
+E002 - Endereco de gateway fora da propria faixa
+  endereco de gerenciamento 192.168.99.4 esta fora da faixa da VLAN 10-CORPORATIVO (192.168.10.0/24)
+    onde: dist-1b vlan 10
+    sugestao: Use um endereco dentro de 192.168.10.0/24, por exemplo 192.168.10.1.
+E003 - Pool DHCP fora da faixa da VLAN
+  pool DHCP da VLAN 20-VOIP entrega 30 endereco(s) fora de 192.168.20.0/24: 192.168.10.200 ate 192.168.10.229
+    onde: pool 192.168.10.200-192.168.10.229
+    sugestao: Mantenha o pool inteiro dentro de 192.168.20.0/24.
+E004 - VLAN usada em interface mas nao declarada
+  porta access usa a VLAN 99, que nao esta declarada no projeto
+    onde: acc-1b/Gi0/1
+    sugestao: Declare a VLAN 99 ou corrija a porta.
+E005 - Trunk referencia VLAN inexistente
+  trunk permite a VLAN 77, que nao esta declarada no projeto
+    onde: core-1/Te1/0/1
+    sugestao: Declare a VLAN 77 ou remova do trunk.
+E006 - CFTV com rota default para a internet
+  VLAN 30-CFTV tem rota default para a internet. Equipamento de CFTV e seguranca eletronica nao deve sair da rede local: alcancavel de fora, ele vira caminho de entrada para o que esta atras dele
+    onde: rota da VLAN 30
+    sugestao: Remova a rota default da VLAN 30. Se precisar de acesso remoto, use VPN com autenticacao.
+E007 - ENERGIA-IP com rota default para a internet
+  VLAN 50-ENERGIA-IP tem rota default para a internet. Equipamento de Energia IP e automacao predial nao deve sair da rede local: alcancavel de fora, ele vira caminho de entrada para o que esta atras dele
+    onde: rota da VLAN 50
+    sugestao: Remova a rota default da VLAN 50. Se precisar de acesso remoto, use VPN com autenticacao.
+E009 - Endereco duplicado em switch diferente
+  endereco 192.168.10.3 esta em 2 switches: acc-1b, dist-1a
+    onde: 192.168.10.3
+    sugestao: Atribua um endereco por switch.
+E010 - Community SNMP em modo escrita
+  community SNMP em modo escrita neste equipamento; community em leitura ja cobre monitoramento
+    onde: acc-1a (Cisco Catalyst C1200-24T)
+    sugestao: Mude para read-only. Se precisar de escrita, use SNMPv3 com autenticacao e cifra.
+E008 - Trunk sem VLAN de gerenciamento permitida
+  trunk nao permite a VLAN 10 de gerenciamento; os equipamentos atras desse enlace ficam sem gerenciamento
+    onde: dist-1a/Te1/0/1
+    sugestao: Adicione a VLAN 10 ao trunk.
+E011 - AP sem SSID mapeado para VLAN
+  ponto de acesso anuncia 1 SSID sem VLAN mapeada: Free-WiFi-Publico. SSID sem VLAN cai na rede de gerencia por padrao
+    onde: ap-visitantes-2a
+    sugestao: Mapeie cada SSID para uma VLAN, de preferencia 40-GUEST para rede de visitantes.
+E012 - Mascara de sub-rede inconsistente
+  VLANs 40-GUEST usam /25, e as demais usam /24
+    onde: prefixo /25
+    sugestao: Padronize em /24, que e o plano de enderecamento declarado no projeto.
+```
+
+## Resumo do projeto
+
+```
+PS> python -m netlab resumir dados/projeto-predio.yaml
+Projeto: projeto-predio
+Predio: Edificio Predial Norte - 3 andares
+Dispositivos: 17
+VLANs: 5
+    10 10-CORPORATIVO         192.168.10.0/24
+    20 20-VOIP                192.168.20.0/24
+    30 30-CFTV                192.168.30.0/24
+    40 40-GUEST               192.168.40.0/24
+    50 50-ENERGIA-IP          192.168.50.0/24
+Switches: 9
+  acc-1a                 acesso         192.168.10.11
+  acc-1b                 acesso         192.168.10.12
+  acc-2a                 acesso         192.168.10.21
+  acc-2b                 acesso         192.168.10.22
+  acc-3a                 acesso         192.168.10.31
+  acc-cftv               acesso         192.168.30.2
+  core-1                 core           192.168.10.2
+  dist-1a                distribuicao   192.168.10.3
+  dist-1b                distribuicao   192.168.10.4
+Access points: 2
+  ap-visitantes-1a       2 SSIDs
+  ap-visitantes-2a       1 SSIDs
+```
