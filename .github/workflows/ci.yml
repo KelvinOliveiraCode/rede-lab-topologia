@@ -49,6 +49,10 @@ jobs:
             exit 1
           }
           Write-Host "codigo de saida 1 como esperado"
+          # O runner fecha o passo com `exit $LASTEXITCODE`. Sem este exit 0
+          # explicito, o codigo 1 da CLI - que aqui e o resultado esperado -
+          # vira codigo de saida do passo e o CI fica vermelho.
+          exit 0
 
       - name: Rodar testes com cobertura
         # fail_under=70 esta no pyproject.toml; cobertura abaixo derruba o build.
