@@ -37,14 +37,18 @@ jobs:
         run: python -m netlab validar dados/projeto-predio.yaml
 
       - name: O projeto com erros falha com codigo 1
-        # Segunda metade do criterio de aceite. O passo anterior falha se a
-        # CLI devolver qualquer codigo diferente de 0.
+        # Segunda metade do criterio de aceite. O `$PSNativeCommandUseErrorActionPreference`
+        # precisa ser desligado: no pwsh do runner (7.4+) um comando nativo que
+        # devolve codigo diferente de zero vira erro terminante e aborta o passo
+        # antes do `if` abaixo, que e justamente o que este passo quer checar.
         run: |
+          $PSNativeCommandUseErrorActionPreference = $false
           python -m netlab validar dados/projeto-com-erros.yaml
           if ($LASTEXITCODE -ne 1) {
             Write-Error "esperava codigo de saida 1, veio $LASTEXITCODE"
             exit 1
           }
+          Write-Host "codigo de saida 1 como esperado"
 
       - name: Rodar testes com cobertura
         # fail_under=70 esta no pyproject.toml; cobertura abaixo derruba o build.
