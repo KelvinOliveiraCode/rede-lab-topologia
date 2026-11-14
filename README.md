@@ -18,7 +18,7 @@ Laboratório educacional funcional e testado (181 testes).
 - **Modelo** (`modelo.py`): dataclasses `Vlan`, `Switch`, `Interface`, `Roteador`, `Projeto`.
 - **Validação** (`validador.py`): verifica endereçamento IP, sub-redes, sobreposição, VLANs associadas, interfaces e rotas.
 - **Relatório** (`relatorio.py`): saída em texto colorido ou JSON, com lista de erros.
-- **CLI**: `netlab validar <projeto.yaml>`, `netlab regras`, `netlab resumir`.
+- CLI: `netlab validar <projeto.yaml>`, `netlab regras`, `netlab resumir`.
 
 ## Arquitetura
 
@@ -32,7 +32,7 @@ Pacote `netlab` com camadas: `cargador` (parse YAML), `modelo` (dataclasses), `v
 
 ## Estrutura do repositório
 
-```
+```text
 rede-lab-topologia/
 ├── pyproject.toml · BRIEF.md
 ├── src/netlab/
@@ -79,4 +79,4 @@ Projeto individual de Kelvin Oliveira, construído com agentes de IA orquestrado
 
 ## Licença e autor
 
-MIT — Copyright (c) 2026 Kelvin Rebelo de Oliveira. Autor: [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfólio](https://kelvinoliveiracode.github.io/portfolio/)
+MIT. Copyright (c) 2026 Kelvin Rebelo de Oliveira. Autor: [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfólio](https://kelvinoliveiracode.github.io/portfolio/)
