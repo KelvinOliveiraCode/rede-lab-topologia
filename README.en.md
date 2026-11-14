@@ -1,118 +1,82 @@
 # rede-lab-topologia
 
-<div align="center">
-
 **English** · [Português (Brasil)](README.md)
 
-</div>
-
-[![Python 3](https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/) [![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikit-learn)](https://scikit-learn.org/) [![pandas](https://img.shields.io/badge/pandas-150458?style=flat-square&logo=pandas)](https://pandas.pydata.org/) [![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=flat-square&logo=pytest)](https://docs.pytest.org/) [![MIT License](https://img.shields.io/badge/License-MIT-f4c430?style=flat-square)](LICENSE)
-
-### Validador de projeto de rede LAN: sub-redes, roteamento, Vlan e capacidade, com relatorio de problemas
-
----
+[![Python 3](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](#) [![PyYAML](https://img.shields.io/badge/PyYAML-only%20dep-3776AB?style=flat-square)](#) [![pytest](https://img.shields.io/badge/pytest-181%20tests-0A9EDC?style=flat-square&logo=pytest)](#) [![MIT License](https://img.shields.io/badge/License-MIT-f4c430?style=flat-square)](LICENSE)
 
 ## What it is
 
-Validador de projeto de rede LAN: sub-redes, roteamento, Vlan e capacidade, com relatorio de problemas
+**LAN project validator**: loads a topology (VLANs, switches, interfaces, routing) from a YAML file, validates subnets, VLAN overlap, interface consistency and routing capability, and produces a text or JSON report. It is an educational network-design lab.
 
----
+## Status
 
-## Quick Start
+An educational lab, working and tested (181 tests).
 
-```bash
-# Clone and enter
-git clone https://github.com/KelvinOliveiraCode/<repo>.git
-cd <repo>
+## Features
 
-# Install dependencies
-# No requirements.txt detected
+- **Project loader** (`cargador.py`): reads YAML of VLANs, switches, interfaces and routing with type validation.
+- **Model** (`modelo.py`): dataclasses `Vlan`, `Switch`, `Interface`, `Roteador`, `Projeto`.
+- **Validation** (`validador.py`): checks IP addressing, subnets, overlap, VLAN associations, interfaces and routes.
+- **Report** (`relatorio.py`): colored text or JSON output with error listing.
+- **CLI**: `netlab validar <projeto.yaml>`, `netlab regras`, `netlab resumir`.
 
-# Run the project
-python main.py
+## Architecture
 
-# Run tests
-pytest
+A `netlab` package with layers: `cargador` (YAML parse), `modelo` (dataclasses), `validador` (design rules), `relatorio` (output).
+
+## Stack
+
+- Python ≥ 3.10
+- PyYAML ≥ 6.0 (only dependency)
+- pytest (dev)
+
+## Repository layout
+
+```
+rede-lab-topologia/
+├── pyproject.toml · BRIEF.md
+├── src/netlab/
+│   ├── cargador.py · modelo.py · validador.py · relatorio.py · cli.py
+├── dados/            # YAML project examples
+├── tests/            # 181 tests
+└── LICENSE           # MIT
 ```
 
-## How it works
+## Prerequisites and installation
 
-Estrutura limpa e modular com separação de responsabilidades.
+```bash
+pip install -e .
+```
 
----
+## How to run
 
-## Capabilities
+```bash
+netlab validar dados/projeto.yaml
+netlab regras
+netlab resumir dados/projeto.yaml
+```
 
-| Capacidade | Descrição |
-|------------|-------------|
-| Carregamento de Dados | Auto-download do TensorFlow creditcard.csv (284k transações) com cache local |
-| EDA e Visualização | Distribuição de classes, histogramas de Amount, heatmaps de correlação (matplotlib/seaborn) |
-| Pré-processamento | RobustScaler em Amount/Time, split estratificado, remoção de duplicatas |
-| Balanceamento | SMOTE oversampling (fallback: class_weight="balanced") |
-| Modelagem | LogisticRegression, RandomForest, ExtraTrees com RandomizedSearchCV (StratifiedKFold) |
-| Métricas | Accuracy, Precision, Recall, F1, ROC AUC, Specificity, Confusion Matrix |
-| Seleção | Score ponderado: Recall 40% + F1 30% + Precision 20% + Accuracy 10% |
-| Persistência | Serialização joblib para modelo, scaler e resultados completos |
+## Tests and quality
 
+```bash
+PYTHONPATH=src python -m pytest tests/
+# 181 passed
+```
 
----
+## Technical decisions and trade-offs
 
+- Independent validation rules, easily extensible.
+- YAML input format: readable and editable, but no formal schema (manual validation in `cargador`).
 
+## Known limitations
 
----
+- Hypothetical projects (YAML), no integration with real equipment.
+- Does not cover dynamic routing (OSPF/BGP).
 
-## FAQ
+## Development process
 
-<details>
-<summary><strong>What is this project?</strong></summary>
+An individual project by Kelvin Oliveira, built with orchestrated AI agents and reviewed by the author. The topology validation and the review are the author's.
 
-A Python study/project demonstrating core concepts.
+## License and author
 
-</details>
-
-<details>
-<summary><strong>How do I run it?</strong></summary>
-
-See [Quick Start](#quick-start) for copy-paste commands.
-
-</details>
-
-<details>
-<summary><strong>Are there tests?</strong></summary>
-
-No automated tests in this repository.
-
-</details>
-
-<details>
-<summary><strong>Can I use this in production?</strong></summary>
-
-This is a **study/portfolio project**. Review and harden (auth, persistence, monitoring, etc.) before production use.
-
-</details>
-
-
-
----
-
-## Documentation
-
-- **Source Code** ,  Browse the `src/` directory for implementation details
-- **API Reference** ,  Inline docstrings + type hints
-- **Architecture Diagram** ,  See [architecture.mermaid](docs/architecture.mermaid) (if present)
-- **Changelog** ,  [CHANGELOG.md](CHANGELOG.md) (if present)
-- **Contributing** ,  [CONTRIBUTING.md](CONTRIBUTING.md) (if present)
-
-## License
-
-[MIT](LICENSE) ,  Kelvin Oliveira
-
----
-
-<div align="center">
-
-**Built with** · Python 3 + scikit-learn + pandas
-
-**Author** · [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfolio](https://kelvinoliveiracode.github.io/portfolio/)
-
-</div>
+MIT — Copyright (c) 2026 Kelvin Rebelo de Oliveira. Author: [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfolio](https://kelvinoliveiracode.github.io/portfolio/)
